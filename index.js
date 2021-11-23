@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const { MongoClient } = require('mongodb');
+const { ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 // middlewear
@@ -18,7 +19,24 @@ async function run() {
 		await client.connect();
 		const database = client.db('codeaxes');
 		const usersCollection = database.collection('users');
-		console.log('Connected to MongoDB');
+		// set user to db
+		app.post('/user', async (req, res) => {
+			const user = req.body;
+			const result = await usersCollection.insertOne(user);
+			res.json(result);
+		});
+		// get all user from db
+		app.get('/users', async (req, res) => {
+			const users = await usersCollection.find({}).toArray();
+			res.json(users);
+		});
+		// delete an user
+		app.delete('/user/:id', async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: ObjectId(id) };
+			const result = await usersCollection.deleteOne(query);
+			res.json(result);
+		});
 	} finally {
 		// await client.close();
 	}
